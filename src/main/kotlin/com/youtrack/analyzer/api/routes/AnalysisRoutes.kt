@@ -17,14 +17,10 @@ fun Route.analyzeRoutes(analyzer: WorkflowAnalyzer) {
             val request = call.receive<AnalysisRequest>()
             logger.info { "Received analysis request for: ${request.errorMessage.take(50)}..." }
 
-            // Validate that at least issueId or projectId is provided
+            // If issueId or projectId provided, fetch real YouTrack data
+            // Otherwise, fall back to basic analysis without YouTrack context
             if (request.issueId == null && request.projectId == null) {
-                logger.warn { "Analysis request missing both issueId and projectId" }
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    mapOf("error" to "Either issueId or projectId is required")
-                )
-                return@post
+                logger.info { "Analysis request without issueId/projectId - using basic analysis" }
             }
 
             analyzer.analyze(
